@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0A0A0A">
+
+  <title>Túladagolás – Mennyi Orbán van az életedben?</title>
+  <meta name="description" content="Számold ki, életed hány százalékát töltötted Orbán Viktor miniszterelnöksége alatt. Szavazz 2026. április 12-én!">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Túladagolás – Mennyi Orbán van az életedben?">
+  <meta property="og:description" content="Számold ki, életed hány százalékát töltötted Orbán Viktor miniszterelnöksége alatt.">
+  <meta property="og:image" content="https://tuladagolas.hu/assets/og-image.png">
+  <meta property="og:url" content="https://tuladagolas.hu">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="hu_HU">
+
+  <!-- Twitter/X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Túladagolás – Mennyi Orbán van az életedben?">
+  <meta name="twitter:description" content="Számold ki a sajátodat!">
+  <meta name="twitter:image" content="https://tuladagolas.hu/assets/og-image.png">
+
+  <!-- Favicon (placeholder) -->
+  <link rel="icon" type="image/png" href="assets/OV-tabletta_01.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- LANDING PAGE                                 -->
+  <!-- ============================================ -->
+  <div id="landing">
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <img src="assets/OV-tabletta_01.png" alt="" class="site-header__logo" width="32" height="32">
+        <span class="site-header__brand">tuladagolas.hu</span>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <img src="assets/OV-tabletta_01.png" alt="Tabletta - Túladagolás logó" class="hero__image" width="280" height="280">
+        <h1 class="hero__title">Túladagolás</h1>
+        <p class="hero__subtitle">Mennyi Orbán van az életedben?</p>
+
+        <form class="hero__form" id="calc-form" novalidate>
+          <label for="birth-date" class="sr-only">Születési dátumod</label>
+          <input
+            type="date"
+            id="birth-date"
+            class="input hero__input"
+            min="1920-01-01"
+            required
+            aria-describedby="input-error">
+          <button type="submit" id="calculate-btn" class="btn btn--primary btn--large">
+            Számold ki!
+          </button>
+          <p id="input-error" class="error" role="alert" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Bemutatkozás -->
+    <section class="intro">
+      <div class="container intro__inner">
+        <h2 class="section__title">Miért készült ez az oldal?</h2>
+        <p class="intro__text">
+          A Miskolci Egyetem docense vagyok. Ha megint a Fidesz nyer, 2 éven belül
+          olyan hallgatók kezdenek nálam, akiknek <strong>születésükkor is Orbán volt
+          a miniszterelnök</strong>. Ezer ok van leváltani, de ez önmagában is elég.
+        </p>
+        <p class="intro__signature">
+          <em>[PLACEHOLDER: Szerző neve, beosztás, Miskolci Egyetem]</em>
+        </p>
+      </div>
+    </section>
+
+    <!-- "Ezer ok" linkgyűjtemény -->
+    <section class="resources">
+      <div class="container">
+        <h2 class="section__title">Ezer ok</h2>
+        <p class="resources__lead">Íme néhány, amit érdemes elolvasni:</p>
+        <div class="resources__grid" id="resources-grid" role="list">
+          <!-- JS tölti fel -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- RESULTS PAGE                                 -->
+  <!-- ============================================ -->
+  <div id="results" hidden>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <img src="assets/OV-tabletta_01.png" alt="" class="site-header__logo" width="32" height="32">
+        <span class="site-header__brand">tuladagolas.hu</span>
+        <button type="button" id="recalculate-btn-top" class="btn btn--outline site-header__recalc">
+          ← Újra számolás
+        </button>
+      </div>
+    </header>
+
+    <!-- 2.1 Countdown -->
+    <section class="countdown-section" id="countdown-wrap">
+      <div class="container">
+        <p class="countdown-section__label">A 2026. április 12-i választásig:</p>
+        <div class="countdown" id="countdown" aria-live="polite">
+          <div class="countdown__unit">
+            <span class="countdown__value" id="cd-days">0</span>
+            <span class="countdown__label">nap</span>
+          </div>
+          <div class="countdown__unit">
+            <span class="countdown__value" id="cd-hours">0</span>
+            <span class="countdown__label">óra</span>
+          </div>
+          <div class="countdown__unit">
+            <span class="countdown__value" id="cd-minutes">0</span>
+            <span class="countdown__label">perc</span>
+          </div>
+          <div class="countdown__unit">
+            <span class="countdown__value" id="cd-seconds">0</span>
+            <span class="countdown__label">mp</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.3 Fő statisztika – Orbán-százalék -->
+    <section class="main-stat" id="main-stat">
+      <div class="container main-stat__inner">
+        <p class="main-stat__label">Az életed</p>
+        <div class="main-stat__percent" id="main-stat-percent">0%</div>
+        <p class="main-stat__label">Orbán-kormányzás alatt telt el.</p>
+        <p class="main-stat__sub" id="main-stat-sub">Ez 0 nap a 0 napodból.</p>
+      </div>
+    </section>
+
+    <!-- 2.2 Fun fact statisztikák -->
+    <section class="fun-facts">
+      <div class="container">
+        <h2 class="section__title">Az életed számokban</h2>
+        <div class="fun-facts__grid" id="fun-facts-grid">
+          <!-- JS tölti fel -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.4 Life in Weeks grid (Fázis 5) -->
+    <section class="grid-section" id="grid-section">
+      <div class="container">
+        <h2 class="section__title">Az életed hetekben</h2>
+        <p class="grid-section__lead">
+          Minden cella egy hét. Narancssárga = Orbán-kormány alatt.
+        </p>
+        <div class="grid-legend">
+          <span class="grid-legend__item">
+            <span class="grid-legend__swatch grid-legend__swatch--orban"></span>
+            Orbán-kormány
+          </span>
+          <span class="grid-legend__item">
+            <span class="grid-legend__swatch grid-legend__swatch--free"></span>
+            Egyéb időszak
+          </span>
+        </div>
+        <div class="life-grid" id="life-grid" role="img" aria-label="Az életed hetekben, Orbán-kormányzás alatti hetek narancssárgával">
+          <!-- JS tölti fel -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2.5 Share (Fázis 6) -->
+    <section class="share-section" id="share-section">
+      <!-- Fázis 6 fogja kitölteni -->
+    </section>
+
+    <!-- 2.6 Záró CTA (Fázis 7) -->
+    <section class="cta-section section--light" id="cta-section">
+      <!-- Fázis 7 fogja kitölteni -->
+    </section>
+
+    <div class="recalculate-wrap">
+      <button type="button" id="recalculate-btn" class="btn btn--outline">
+        ← Újra számolás
+      </button>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    <p>© 2026 tuladagolas.hu</p>
+  </footer>
+
+  <!-- Scripts (order matters: calculator → grid → share → app) -->
+  <script src="js/calculator.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon='{"token": "PLACEHOLDER_CF_ANALYTICS_TOKEN"}'></script>
+</body>
+</html>

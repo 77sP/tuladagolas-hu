@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculator tests – tuladagolas.hu</title>
+  <style>
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #111;
+      color: #eee;
+    }
+    h1 { color: #FF6B00; }
+    .pass { color: #00C853; }
+    .fail { color: #FF3D3D; font-weight: bold; }
+    .test { padding: 4px 0; font-family: ui-monospace, monospace; font-size: 14px; }
+    .section { margin-top: 1.5rem; border-top: 1px solid #333; padding-top: 1rem; }
+    .summary { font-size: 1.25rem; margin-top: 2rem; padding: 1rem; background: #222; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Calculator – boundary case tests</h1>
+  <p>Futtatáshoz: <code>open test-calculator.html</code>. Az eredmények a böngésző konzoljában és lent láthatók.</p>
+  <div id="output"></div>
+
+  <script src="js/calculator.js"></script>
+  <script>
+    (function () {
+      const out = document.getElementById('output');
+      let passCount = 0;
+      let failCount = 0;
+
+      function log(msg, pass, section) {
+        const el = document.createElement('div');
+        el.className = 'test ' + (pass ? 'pass' : 'fail');
+        el.textContent = (pass ? '✓ PASS: ' : '✗ FAIL: ') + msg;
+        out.appendChild(el);
+        if (pass) { passCount++; console.log('PASS: ' + msg); }
+        else { failCount++; console.error('FAIL: ' + msg); }
+      }
+
+      function section(title) {
+        const el = document.createElement('div');
+        el.className = 'section';
+        el.innerHTML = '<h2>' + title + '</h2>';
+        out.appendChild(el);
+      }
+
+      function assertEqual(actual, expected, label) {
+        const pass = actual === expected;
+        log(label + ' – expected ' + expected + ', got ' + actual, pass);
+      }
+
+      function assertTrue(value, label) {
+        log(label, !!value);
+      }
+
+      function assertClose(actual, expected, tolerance, label) {
+        const pass = Math.abs(actual - expected) <= tolerance;
+        log(label + ' – expected ~' + expected + ' (±' + tolerance + '), got ' + actual, pass);
+      }
+
+      const C = window.Calculator;
+
+      // ============================================
+      // Szavazójog boundary
+      // ============================================
+      section('Szavazójog (cutoff: 2008-04-12)');
+      assertEqual(C.canVote('2008-04-12'), true, '2008-04-12 → szavazhat');
+      assertEqual(C.canVote('2008-04-13'), false, '2008-04-13 → NEM szavazhat');
+      assertEqual(C.canVote('2000-01-01'), true, '2000-01-01 → szavazhat');
+      assertEqual(C.canVote('2010-01-01'), false, '2010-01-01 → NEM szavazhat');
+
+      // ============================================
+      // Orbán-napok boundary
+      // ============================================
+      section('Orbán-napok és százalék');
+      const o1 = C.calculateOrbanDays('1998-07-06');
+      assertTrue(o1.cycles.length >= 1, '1998-07-06 – van Orbán-ciklus átfedés (1. ciklus)');
+
+      const o2 = C.calculateOrbanDays('1998-07-05');
+      assertTrue(o2.orbanDays > 0, '1998-07-05 – 1 nappal Orbán előtt, de összes ciklus átfedés');
+
+      const o3 = C.calculateOrbanDays('1990-01-01');
+      assertEqual(o3.cycles.length, 5, '1990-01-01 – mind az 5 ciklus átfed');
+
+      const o4 = C.calculateOrbanDays('2020-01-01');
+      assertTrue(o4.percent > 70, '2020-01-01 – magas Orbán-százalék (>70%)');
+
+      const o5 = C.calculateOrbanDays('2005-01-01');
+      assertTrue(o5.percent > 50 && o5.percent < 100, '2005-01-01 – közepes százalék (50-100%)');
+
+      // ============================================
+      // Fun facts
+      // ============================================
+      section('Fun facts');
+      const f1 = C.calculateFunFacts('2000-01-01');
+      assertTrue(f1.days > 9000 && f1.days < 10000, '2000-01-01 – ~9200-9600 nap');
+      assertTrue(f1.heartbeats > 1_000_000_000, '2000-01-01 – heartbeats > 1 milliárd');
+      assertTrue(f1.kmAroundSun > 20_000_000_000, '2000-01-01 – km a Nap körül > 20 milliárd');
+      assertTrue(f1.electionsLived >= 6, '2000-01-01 – legalább 6 választást élt meg');
+      assertTrue(f1.orbanGovernments >= 4, '2000-01-01 – legalább 4 Orbán-kormány');
+
+      // ============================================
+      // Countdown (ma: 2026-04-09, választás: 2026-04-12)
+      // ============================================
+      section('Countdown');
+      const cd = C.getCountdown();
+      assertTrue(cd.isPast === false, 'Countdown még nem múlt el');
+      assertTrue(cd.days >= 0 && cd.days <= 5, 'Countdown napok: 0-5 között');
+
+      // ============================================
+      // Edge case: ma született
+      // ============================================
+      section('Edge cases');
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+      const oToday = C.calculateOrbanDays(todayStr);
+      assertEqual(oToday.percent, 0, 'Ma született → 0%');
+      assertEqual(oToday.totalDays, 0, 'Ma született → 0 nap');
+
+      // ============================================
+      // Nagyon idős
+      // ============================================
+      const old = C.calculateAge('1950-01-01');
+      assertTrue(old.weeks > 3900 && old.weeks < 4100, '1950-01-01 – ~3900-4100 hét');
+
+      // ============================================
+      // Formázók
+      // ============================================
+      section('Formázók');
+      // Intl.NumberFormat uses non-breaking space (U+00A0) as thousands separator
+      const fnResult = C.formatNumber(1234567);
+      // Normalize: replace any whitespace with regular space
+      const fnNormalized = fnResult.replace(/\s/g, ' ');
+      assertEqual(fnNormalized, '1 234 567', 'formatNumber ezres elválasztó (normalized)');
+      assertTrue(C.formatBigNumber(2_500_000_000).includes('milliárd'), 'formatBigNumber milliárd');
+      assertTrue(C.formatBigNumber(5_500_000).includes('millió'), 'formatBigNumber millió');
+
+      // ============================================
+      // Summary
+      // ============================================
+      const summary = document.createElement('div');
+      summary.className = 'summary';
+      summary.innerHTML = `<strong>Összesen:</strong> ${passCount} PASS, ${failCount} FAIL`;
+      summary.style.color = failCount === 0 ? '#00C853' : '#FF3D3D';
+      out.appendChild(summary);
+      console.log(`\n=== RESULT: ${passCount} PASS, ${failCount} FAIL ===`);
+    })();
+  </script>
+</body>
+</html>
