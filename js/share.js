@@ -250,23 +250,43 @@
         cardEl.appendChild(canvas);
         downloadBtn.disabled = false;
 
-        // Wire download
+        // Wire download / share
         downloadBtn.addEventListener('click', () => {
-          canvas.toBlob((blob) => {
+          canvas.toBlob(async (blob) => {
             if (!blob) {
               alert('Nem sikerült a kép generálása.');
               return;
             }
+
+            const fileName = `tuladagolas-eletem-${percent}szazalek.png`;
+            const file = new File([blob], fileName, { type: 'image/png' });
+
+            // Try native share (mobile → Photos / Instagram / WhatsApp etc.)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              try {
+                await navigator.share({
+                  files: [file],
+                  title: 'Túladagolás',
+                  text: `Az életem ${percent}% Orbánt tartalmaz. Számold ki a sajátodat: tuladagolas.hu`
+                });
+                trackVirtualPageview('/share-native');
+                return;
+              } catch (err) {
+                // User cancelled share or error – fall through to download
+                if (err.name === 'AbortError') return;
+              }
+            }
+
+            // Fallback: classic download (desktop)
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `tuladagolas-eletem-${percent}szazalek.png`;
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-            // Track download as virtual pageview for CF Web Analytics
             trackVirtualPageview('/download');
           }, 'image/png');
         });
