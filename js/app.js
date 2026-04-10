@@ -215,7 +215,7 @@
     if (!percentEl || !subEl) return;
 
     const target = orbanResult.percent;
-    animateNumber(percentEl, target, 1500, (v) => {
+    animateNumber(percentEl, target, 2000, (v) => {
       return v.toFixed(v >= 10 ? 0 : 1).replace('.', ',') + '%';
     });
 
