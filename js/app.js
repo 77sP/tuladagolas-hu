@@ -15,37 +15,37 @@
       title: '[PLACEHOLDER] Ok #1',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     },
     {
       title: '[PLACEHOLDER] Ok #2',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     },
     {
       title: '[PLACEHOLDER] Ok #3',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     },
     {
       title: '[PLACEHOLDER] Ok #4',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     },
     {
       title: '[PLACEHOLDER] Ok #5',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     },
     {
       title: '[PLACEHOLDER] Ok #6',
       description: 'Rövid leírás arról, miért érdemes olvasni ezt a forrást.',
       url: 'https://example.com',
-      thumbnail: 'assets/OV-tabletta_01.png'
+      thumbnail: 'assets/OV.png'
     }
   ];
 
@@ -121,17 +121,17 @@
   const FUN_FACT_DEFS = [
     {
       icon: '📅',
-      label: 'nap az életedben',
+      label: 'nap',
       value: (f, C) => C.formatNumber(f.days)
     },
     {
       icon: '❤️',
-      label: 'szívverés',
+      label: 'szívdobbanás',
       value: (f, C) => C.formatBigNumber(f.heartbeats)
     },
     {
       icon: '🌍',
-      label: 'km a Nap körül',
+      label: 'km utazás a Nap körül',
       value: (f, C) => C.formatBigNumber(f.kmAroundSun)
     },
     {
@@ -141,12 +141,12 @@
     },
     {
       icon: '🗳️',
-      label: 'országgyűlési választás az életedben',
+      label: 'országgyűlési választás',
       value: (f, C) => C.formatNumber(f.electionsLived)
     },
     {
       icon: '🏛️',
-      label: 'Orbán-kormány az életedben',
+      label: 'Orbán-kormány',
       value: (f, C) => C.formatNumber(f.orbanGovernments)
     }
   ];
@@ -219,13 +219,62 @@
       return v.toFixed(v >= 10 ? 0 : 1).replace('.', ',') + '%';
     });
 
-    subEl.textContent = `Ez ${C.formatNumber(orbanResult.orbanDays)} nap a ${C.formatNumber(orbanResult.totalDays)} napodból.`;
+    if (orbanResult.orbanDays >= orbanResult.totalDays && orbanResult.totalDays > 0) {
+      subEl.textContent = `${C.formatNumber(orbanResult.totalDays)} napod mindegyikén Orbán Viktor volt Magyarország miniszterelnöke.`;
+    } else {
+      subEl.textContent = `${C.formatNumber(orbanResult.totalDays)} napodból ${C.formatNumber(orbanResult.orbanDays)} napon volt Orbán Viktor Magyarország miniszterelnöke.`;
+    }
+  }
+
+  // ============================================
+  // Grid labels (lead + legend hét-számok)
+  // ============================================
+  function renderGridLabels(birthDate) {
+    const C = window.Calculator;
+    const counts = C.calculateWeekCounts(birthDate);
+
+    const leadEl = document.getElementById('grid-section-lead');
+    if (leadEl) {
+      leadEl.textContent = `Minden négyzet egy hét az életed ${C.formatNumber(counts.totalWeeks)} hetéből.`;
+    }
+
+    const orbanLabelEl = document.getElementById('legend-orban-label');
+    if (orbanLabelEl) {
+      orbanLabelEl.textContent = `Orbán-kormány (${C.formatNumber(counts.orbanWeeks)} hét)`;
+    }
+
+    const otherLabelEl = document.getElementById('legend-other-label');
+    if (otherLabelEl) {
+      otherLabelEl.textContent = `más kormány (${C.formatNumber(counts.otherWeeks)} hét)`;
+    }
+
+    // Első és jelenlegi hét swatch háttere a tényleges állapotnak megfelelően
+    const birth = birthDate instanceof Date ? birthDate : new Date(birthDate);
+    const MS_PER_WEEK = 7 * 86400000;
+    const lastWeekIndex = Math.max(0, counts.totalWeeks - 1);
+    const firstWeekStart = birth;
+    const lastWeekStart = new Date(birth.getTime() + lastWeekIndex * MS_PER_WEEK);
+
+    const firstIsOrban = C.isWeekOrban(firstWeekStart);
+    const currentIsOrban = C.isWeekOrban(lastWeekStart);
+
+    const firstSwatch = document.getElementById('legend-first-swatch');
+    if (firstSwatch) {
+      firstSwatch.classList.toggle('grid-legend__swatch--orban-bg', firstIsOrban);
+    }
+    const currentSwatch = document.getElementById('legend-current-swatch');
+    if (currentSwatch) {
+      currentSwatch.classList.toggle('grid-legend__swatch--orban-bg', currentIsOrban);
+    }
   }
 
   // ============================================
   // Countdown
   // ============================================
   let countdownIntervalId = null;
+
+  const COUNTDOWN_LABEL_BEFORE = 'A 2026. április 12-i választásig:';
+  const COUNTDOWN_LABEL_DURING = 'Választás folyamatban! Még ennyi időd van szavazni:';
 
   function startCountdown() {
     const C = window.Calculator;
@@ -234,19 +283,35 @@
     const minutesEl = document.getElementById('cd-minutes');
     const secondsEl = document.getElementById('cd-seconds');
     const wrap = document.getElementById('countdown-wrap');
+    const labelEl = document.getElementById('countdown-label');
     if (!wrap || !daysEl) return;
 
     function tick() {
       const cd = C.getCountdown();
+
+      // A szavazás vége után: mind a fenti countdown, mind az alsó CTA
+      // szekció eltűnik az oldalról.
       if (cd.isPast) {
         wrap.hidden = true;
+        const ctaSection = document.getElementById('cta-section');
+        if (ctaSection) ctaSection.hidden = true;
         if (countdownIntervalId) {
           clearInterval(countdownIntervalId);
           countdownIntervalId = null;
         }
+        if (ctaCountdownIntervalId) {
+          clearInterval(ctaCountdownIntervalId);
+          ctaCountdownIntervalId = null;
+        }
         return;
       }
+
       wrap.hidden = false;
+      if (labelEl) {
+        labelEl.textContent = cd.mode === 'during'
+          ? COUNTDOWN_LABEL_DURING
+          : COUNTDOWN_LABEL_BEFORE;
+      }
       daysEl.textContent = cd.days;
       hoursEl.textContent = String(cd.hours).padStart(2, '0');
       minutesEl.textContent = String(cd.minutes).padStart(2, '0');
@@ -291,6 +356,7 @@
         window.Grid.renderLifeGrid(birthDate, gridEl);
       }
     }
+    renderGridLabels(birthDate);
 
     // Share (Phase 6)
     if (window.Share && typeof window.Share.renderShareSection === 'function') {
@@ -333,18 +399,31 @@
     if (eligible) {
       section.innerHTML = `
         <div class="container cta-inner">
-          <h2 class="cta-title">Szavazz április 12-én!</h2>
-          <p class="cta-lead">A te szavazatod számít. Változtass!</p>
-          <div class="cta-countdown" id="cta-countdown" aria-live="polite">
-            <span id="cta-cd-days">0</span> nap
-            <span id="cta-cd-hours">00</span>:<span id="cta-cd-minutes">00</span>:<span id="cta-cd-seconds">00</span>
+          <h2 class="cta-title cta-title--vote">Szavazz április 12-én!</h2>
+          <p class="cta-lead">Számít a szavazatod! Válassz! Változtass!</p>
+          <div class="countdown countdown--cta" id="cta-countdown" aria-live="polite">
+            <div class="countdown__unit">
+              <span class="countdown__value" id="cta-cd-days">0</span>
+              <span class="countdown__label">nap</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" id="cta-cd-hours">00</span>
+              <span class="countdown__label">óra</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" id="cta-cd-minutes">00</span>
+              <span class="countdown__label">perc</span>
+            </div>
+            <div class="countdown__unit">
+              <span class="countdown__value" id="cta-cd-seconds">00</span>
+              <span class="countdown__label">másodperc</span>
+            </div>
           </div>
           <p class="cta-body">
-            2026. április 12-én tartják az országgyűlési választást.
-            Ez a te alkalmad, hogy változtass. Ne add át másnak a döntést!
+            2026. április 12-én országgyűlési választás! Ne hagyd ki!
           </p>
           <button type="button" class="btn btn--green btn--large" id="cta-share-scroll">
-            Megosztom a barátaimmal
+            Megosztás
           </button>
         </div>
       `;
@@ -365,8 +444,7 @@
           <p class="cta-lead">…de a hangod így is számít!</p>
           <p class="cta-body">
             Még nem vagy 18, ezért 2026. április 12-én nem adhatsz le szavazatot.
-            De ott vannak a szüleid, a nagyszüleid, a tanáraid, a barátaid.
-            <strong>Oszd meg velük ezt az oldalt!</strong>
+            <strong>Ezt az oldalt, illetve az eredményedet viszont megoszthatod családoddal, barátaiddal, ismerőseiddel.</strong>
           </p>
           <button type="button" class="btn btn--green btn--large" id="cta-share-scroll">
             Megosztom a családdal
@@ -398,8 +476,9 @@
     function tick() {
       const cd = C.getCountdown();
       if (cd.isPast) {
-        const wrap = document.getElementById('cta-countdown');
-        if (wrap) wrap.hidden = true;
+        // A szavazás vége után az egész CTA szekció eltűnik
+        const ctaSection = document.getElementById('cta-section');
+        if (ctaSection) ctaSection.hidden = true;
         clearInterval(ctaCountdownIntervalId);
         ctaCountdownIntervalId = null;
         return;

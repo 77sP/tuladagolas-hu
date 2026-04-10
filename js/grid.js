@@ -37,6 +37,14 @@
     const totalDays = Math.max(0, Math.floor((today - birth) / 86400000));
     const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
 
+    // Négyzet-grid minden módban:
+    // cols = rows = ceil(√hetek), így a grid mindig kvadratikus,
+    // a cellák szintén négyzetek, és kitöltik a rendelkezésre álló teret.
+    // Fiatalabb → kevesebb cella → nagyobb cellák.
+    // Idősebb → több cella → kisebb cellák.
+    const side = Math.max(1, Math.ceil(Math.sqrt(totalWeeks)));
+    container.style.setProperty('--grid-cols', side);
+
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < totalWeeks; i++) {
@@ -44,7 +52,10 @@
       const isOrban = C.isWeekOrban(weekStart);
 
       const cell = document.createElement('div');
-      cell.className = 'grid-cell' + (isOrban ? ' grid-cell--orban' : '');
+      let cls = 'grid-cell' + (isOrban ? ' grid-cell--orban' : '');
+      if (i === 0) cls += ' grid-cell--first';
+      if (i === totalWeeks - 1) cls += ' grid-cell--current';
+      cell.className = cls;
 
       if (showTooltip) {
         // data attributes for tooltip
@@ -95,12 +106,15 @@
 
       if (!dateStr) return;
 
-      const dateLabel = C.formatDateHu(new Date(dateStr));
-      const stateLabel = isOrban
-        ? `Orbán-kormány${cycle ? ' (' + cycle + '. ciklus)' : ''}`
-        : 'Egyéb időszak';
+      const weekStart = new Date(dateStr);
+      const rangeLabel = C.formatWeekRange(weekStart);
+      let stateLabel = 'más kormány';
+      if (isOrban) {
+        const cycleNum = parseInt(cycle, 10);
+        stateLabel = (cycleNum && C.CYCLE_NAMES[cycleNum - 1]) || 'Orbán-kormány';
+      }
 
-      tooltip.textContent = `${dateLabel} – ${stateLabel}`;
+      tooltip.textContent = `${rangeLabel} – ${stateLabel}`;
       tooltip.hidden = false;
 
       // Position (viewport coordinates)

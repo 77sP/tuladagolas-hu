@@ -29,7 +29,22 @@
   ].map((d) => new Date(d));
 
   const ELECTION_DATE = new Date('2026-04-12T00:00:00');
+  const ELECTION_START = new Date('2026-04-12T06:00:00');
+  const ELECTION_END = new Date('2026-04-12T19:00:00');
   const VOTING_AGE_CUTOFF = new Date('2008-04-12');
+
+  const CYCLE_NAMES = [
+    'Első Orbán-kormány',
+    'Második Orbán-kormány',
+    'Harmadik Orbán-kormány',
+    'Negyedik Orbán-kormány',
+    'Ötödik Orbán-kormány'
+  ];
+
+  const HU_MONTH_NAMES = [
+    'január', 'február', 'március', 'április', 'május', 'június',
+    'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
+  ];
 
   const MS_PER_DAY = 86400000;
 
@@ -166,21 +181,61 @@
 
   // ============================================
   // getCountdown
+  //
+  // Három üzemmód:
+  //   'before'  – a szavazás kezdete (ápr. 12. 06:00) előtt
+  //   'during'  – szavazás alatt (06:00–19:00): a végéig hátralévő idő
+  //   'past'    – szavazás után (19:00 után)
   // ============================================
   function getCountdown() {
     const now = new Date();
-    const diff = ELECTION_DATE.getTime() - now.getTime();
+    let target = null;
+    let mode = 'past';
 
-    if (diff <= 0) {
-      return { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true };
+    if (now < ELECTION_START) {
+      mode = 'before';
+      target = ELECTION_START;
+    } else if (now < ELECTION_END) {
+      mode = 'during';
+      target = ELECTION_END;
     }
 
+    if (mode === 'past') {
+      return { mode, days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true };
+    }
+
+    const diff = target.getTime() - now.getTime();
     const days = Math.floor(diff / MS_PER_DAY);
     const hours = Math.floor((diff % MS_PER_DAY) / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
 
-    return { days, hours, minutes, seconds, isPast: false };
+    return { mode, days, hours, minutes, seconds, isPast: false };
+  }
+
+  // ============================================
+  // calculateWeekCounts – a grid logikájával azonos hétszámlálás
+  // (isWeekOrban minden héthez). Visszaadja a hetek teljes számát,
+  // az Orbán-kormány alatti hetek számát, és a többit.
+  // ============================================
+  function calculateWeekCounts(birthDate) {
+    const birth = toDate(birthDate);
+    const today = new Date();
+    const totalDays = Math.max(0, diffDays(birth, today));
+    const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+
+    let orbanWeeks = 0;
+    const MS_PER_WEEK = 7 * MS_PER_DAY;
+    for (let i = 0; i < totalWeeks; i++) {
+      const weekStart = new Date(birth.getTime() + i * MS_PER_WEEK);
+      if (isWeekOrban(weekStart)) orbanWeeks++;
+    }
+
+    return {
+      totalWeeks,
+      orbanWeeks,
+      otherWeeks: totalWeeks - orbanWeeks
+    };
   }
 
   // ============================================
@@ -246,6 +301,44 @@
     return dateFormatterHu.format(toDate(date));
   }
 
+  /**
+   * Egy hét időtartamának formázása: weekStart .. weekStart + 6 nap
+   * Példák:
+   *   azonos hónap: "1991. március 10–16."
+   *   hónaphatár:   "1991. március 28. – április 3."
+   *   évhatár:      "1999. december 30. – 2000. január 5."
+   */
+  function formatWeekRange(weekStart) {
+    const start = toDate(weekStart);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+
+    const sY = start.getFullYear();
+    const eY = end.getFullYear();
+    const sM = start.getMonth();
+    const eM = end.getMonth();
+    const sD = start.getDate();
+    const eD = end.getDate();
+
+    if (sY === eY && sM === eM) {
+      return `${sY}. ${HU_MONTH_NAMES[sM]} ${sD}–${eD}.`;
+    }
+    if (sY === eY) {
+      return `${sY}. ${HU_MONTH_NAMES[sM]} ${sD}. – ${HU_MONTH_NAMES[eM]} ${eD}.`;
+    }
+    return `${sY}. ${HU_MONTH_NAMES[sM]} ${sD}. – ${eY}. ${HU_MONTH_NAMES[eM]} ${eD}.`;
+  }
+
+  /**
+   * Visszaadja a ciklus nevét (pl. "Harmadik Orbán-kormány")
+   * vagy null, ha a dátum nem esik egyik Orbán-ciklusba sem.
+   */
+  function getCycleNameForDate(date) {
+    const cycle = getCycleForDate(date);
+    if (!cycle) return null;
+    return CYCLE_NAMES[cycle - 1] || null;
+  }
+
   // ============================================
   // Export
   // ============================================
@@ -253,17 +346,23 @@
     ORBAN_PERIODS,
     ELECTIONS,
     ELECTION_DATE,
+    ELECTION_START,
+    ELECTION_END,
     VOTING_AGE_CUTOFF,
+    CYCLE_NAMES,
     diffDays,
     calculateAge,
     calculateOrbanDays,
     calculateFunFacts,
+    calculateWeekCounts,
     canVote,
     getCountdown,
     isWeekOrban,
     getCycleForDate,
+    getCycleNameForDate,
     formatNumber,
     formatBigNumber,
-    formatDateHu
+    formatDateHu,
+    formatWeekRange
   };
 })();
