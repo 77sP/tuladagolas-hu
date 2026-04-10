@@ -217,7 +217,7 @@
         <div class="share-intro__inner">
           <h2 class="section__title">OSZD MEG AZ EREDMÉNYT</h2>
           <ol class="share-steps">
-            <li><strong>Töltsd le</strong> az eredményedet mutató képet.</li>
+            <li><a href="#" class="share-steps__link" id="steps-download-link">Töltsd le</a> az eredményedet mutató képet.</li>
             <li><strong>Posztold</strong> Facebookra, Instagramra, TikTokra – bárhová.</li>
             <li><strong>Írd mellé</strong> a véleményed + ezt: „Számold ki a sajátodat: <span class="share-steps__url">tuladagolas.hu</span>"</li>
           </ol>
@@ -296,6 +296,16 @@
         cardEl.innerHTML = '<p style="color:var(--text-secondary);text-align:center;">Nem sikerült a kép generálása.</p>';
         downloadBtn.hidden = true;
       });
+
+    // "Töltsd le" link in steps → triggers download button
+    const stepsLink = document.getElementById('steps-download-link');
+    if (stepsLink) {
+      stepsLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('download-btn');
+        if (btn && !btn.disabled) btn.click();
+      });
+    }
 
     // Link copy
     const linkBtn = document.getElementById('share-link');
