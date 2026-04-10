@@ -52,8 +52,9 @@
 
         <form class="hero__form" id="calc-form" novalidate>
           <label for="birth-date" class="sr-only">Születési dátumod</label>
-          <input type="date" id="birth-date" class="input hero__input" min="1920-01-01" required
-            aria-describedby="input-error">
+          <input type="text" id="birth-date" class="input hero__input" min="1920-01-01" required
+            aria-describedby="input-error" placeholder="éééé. hh. nn."
+            onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
           <button type="submit" id="calculate-btn" class="btn btn--primary btn--large">
             LÁSSUK
           </button>
