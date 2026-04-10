@@ -295,6 +295,24 @@ section {
   border-color: var(--orban-orange);
 }
 
+/* iOS date input fix – force light text + visible controls */
+input[type="date"].input {
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  color-scheme: dark;
+}
+
+input[type="date"].input::-webkit-date-and-time-value {
+  text-align: center;
+}
+
+input[type="date"].input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 .error {
   color: var(--error);
   font-size: 0.9375rem;
