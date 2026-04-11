@@ -22,8 +22,8 @@
   // The text must align: top with "ORBÁN" top, bottom with "van az életemben" bottom
   const PCT = {
     rightX: 540,         // right edge of text
-    topY: 1078,          // top of "ORBÁN" on background – ADJUST if needed
-    targetHeight: 158,   // height from ORBÁN top to "van az életemben" bottom – ADJUST if needed
+    topY: 1080,          // top of "ORBÁN" on background
+    targetHeight: 145,   // height from ORBÁN top (1080) to "van az életemben" bottom (1225)
     fontWeight: 500,
     color: '#ffffff'
   };
