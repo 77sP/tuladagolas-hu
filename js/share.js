@@ -283,8 +283,11 @@
             const fileName = `tuladagolas-eletem-${percent}szazalek.png`;
             const file = new File([blob], fileName, { type: 'image/png' });
 
-            // Try native share (mobile → Photos / Instagram / WhatsApp etc.)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            // Mobile → native share (Photos / Instagram / WhatsApp etc.)
+            // Desktop (Mac/PC) → direct file download
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
               try {
                 await navigator.share({
                   files: [file],
@@ -299,7 +302,7 @@
               }
             }
 
-            // Fallback: classic download (desktop)
+            // Direct file download (desktop, or mobile fallback)
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
