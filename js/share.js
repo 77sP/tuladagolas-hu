@@ -18,14 +18,14 @@
   // Grid area
   const GRID = { x: 50, y: 130, size: 930 };
 
-  // Percentage text ("XX%") – right-aligned
+  // Percentage text ("XX%") – auto-scaled to fit target height
+  // The text must align: top with "ORBÁN" top, bottom with "van az életemben" bottom
   const PCT = {
-    x: 540,
-    y: 1080,
-    font: '500 177px "Inter"',
-    color: '#ffffff',
-    align: 'right',
-    baseline: 'top'
+    rightX: 540,         // right edge of text
+    topY: 1078,          // top of "ORBÁN" on background – ADJUST if needed
+    targetHeight: 158,   // height from ORBÁN top to "van az életemben" bottom – ADJUST if needed
+    fontWeight: 500,
+    color: '#ffffff'
   };
 
   // Footer text (two lines, mixed colors)
@@ -161,12 +161,34 @@
 
     ctx.restore(); // remove clip
 
-    // 3) Percentage text
-    ctx.font = PCT.font;
-    ctx.fillStyle = PCT.color;
-    ctx.textAlign = PCT.align;
-    ctx.textBaseline = PCT.baseline;
-    ctx.fillText(`${percent}%`, PCT.x, PCT.y);
+    // 3) Percentage text – auto-scaled to match "ORBÁN / van az életemben" height
+    {
+      const label = `${percent}%`;
+
+      // Binary search for font size that fits targetHeight
+      let lo = 40, hi = 400, bestSize = 100;
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        ctx.font = `${PCT.fontWeight} ${mid}px "Inter"`;
+        const m = ctx.measureText(label);
+        const h = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+        if (h <= PCT.targetHeight) {
+          bestSize = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+
+      ctx.font = `${PCT.fontWeight} ${bestSize}px "Inter"`;
+      ctx.fillStyle = PCT.color;
+      ctx.textAlign = 'right';
+      const metrics = ctx.measureText(label);
+      // Position: top of glyphs at PCT.topY
+      const drawY = PCT.topY + metrics.actualBoundingBoxAscent;
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(label, PCT.rightX, drawY);
+    }
 
     // 4) Footer text (mixed colors)
     ctx.font = FOOT.font;
