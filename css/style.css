@@ -295,12 +295,8 @@ section {
   border-color: var(--orban-orange);
 }
 
-/* iOS date input fix – force light text + visible controls */
-input[type="date"].input {
-  -webkit-appearance: none;
-  appearance: none;
-  color: var(--text-primary);
-  background: var(--bg-card);
+/* Dark theme date input – light text + white picker icon */
+.input {
   color-scheme: dark;
 }
 
@@ -309,8 +305,9 @@ input[type="date"].input::-webkit-date-and-time-value {
 }
 
 input[type="date"].input::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: invert(1) brightness(2);
   cursor: pointer;
+  opacity: 0.8;
 }
 
 .input::placeholder {
