@@ -307,7 +307,14 @@ input[type="date"].input::-webkit-date-and-time-value {
 input[type="date"].input::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(2);
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 1;
+  width: 24px;
+  height: 24px;
+}
+
+/* Firefox date picker */
+input[type="date"].input::-moz-calendar-picker-indicator {
+  filter: invert(1);
 }
 
 .input::placeholder {
@@ -955,7 +962,9 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
   pointer-events: none;
   z-index: 1000;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
+  max-width: calc(100vw - 24px);
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* ============================================ */

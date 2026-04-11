@@ -117,14 +117,15 @@
       tooltip.textContent = `${rangeLabel} – ${stateLabel}`;
       tooltip.hidden = false;
 
-      // Position (viewport coordinates)
+      // Position (viewport coordinates) – clamp to screen edges
       const rect = tooltip.getBoundingClientRect();
       let left = clientX + 12;
       let top = clientY + 12;
-      if (left + rect.width > window.innerWidth - 8) {
-        left = clientX - rect.width - 12;
+      if (left + rect.width > window.innerWidth - 12) {
+        left = Math.max(12, window.innerWidth - rect.width - 12);
       }
-      if (top + rect.height > window.innerHeight - 8) {
+      if (left < 12) left = 12;
+      if (top + rect.height > window.innerHeight - 12) {
         top = clientY - rect.height - 12;
       }
       tooltip.style.left = left + 'px';
